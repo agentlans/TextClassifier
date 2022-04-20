@@ -32,10 +32,13 @@ class Classifier:
     # Split to training and test sets
     X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.5, random_state=0)
     self.model = LogisticRegression()
-    # Learn the good and bad lines
+    # Learn the good and bad lines. See performance on hold-out dataset.
     y_pred = self.model.fit(X_train, y_train).predict(X_test)
     print("Confusion matrix:")
     print(confusion_matrix(y_test, y_pred))
+    # Train on whole dataset
+    self.model = LogisticRegression()
+    self.model.fit(x,y)
   def predict(self, txt):
     '''Predicts whether the given string is positive (1) or negative (0).'''
     x = self.to_vector(txt).reshape(1, -1)

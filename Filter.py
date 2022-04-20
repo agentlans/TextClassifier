@@ -6,6 +6,8 @@ parser = argparse.ArgumentParser(description='Filters a file by printing only th
 parser.add_argument('classifier', help='file containing the classifier')
 parser.add_argument('infile', help='file containing positive and negative lines')
 parser.add_argument('outfile', help='where to save the filtered file containing only positive lines')
+parser.add_argument('--pos_terms', default='', help='positive terms that must be included in outfile')
+parser.add_argument('--neg_terms', default='', help='negative terms that must be excluded from outfile')
 args = parser.parse_args()
 
 # Load the model
@@ -15,6 +17,25 @@ with open(args.classifier, 'rb') as f:
 
 if cls is None:
   raise "Couldn't load model."
+
+def lines_from_file(filename):
+  if filename == '':
+    return []
+  else:
+    with open(filename, 'r') as f:
+      return [x.strip() for x in f.readlines()]
+
+# Load the terms that we must include or exclude
+pos_terms = lines_from_file(args.pos_terms)
+neg_terms = lines_from_file(args.neg_terms)
+#print(pos_terms)
+#print(neg_terms)
+
+def contains_term(txt, wordlist):
+  for term in wordlist:
+    if term in txt:
+      return True
+  return False
 
 # For writing a string to a file object
 def write_to(file_obj, txt):
@@ -40,6 +61,8 @@ class Writer:
 w = Writer(args.outfile)
 with open(args.infile, 'r') as f:
   for line in f:
-    if cls.predict(line) == 1:
+    if (not contains_term(line, neg_terms)) and \
+      (contains_term(line, pos_terms) or \
+       (cls.predict(line) == 1)):
       w.write(line)
 w.close()
